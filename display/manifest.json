@@ -1,21 +1,22 @@
 {
   "name": "XR Display Dashboard",
-  "short_name": "XR Display",
+  "short_name": "記事牆",
   "description": "Couple Shared Memory - XR Display Dashboard",
-  "start_url": "/xr-display/index.html",
+  "start_url": "./index.html",
+  "scope": "./",
   "display": "standalone",
   "background_color": "#0f0f0f",
   "theme_color": "#0f0f0f",
   "orientation": "landscape",
   "icons": [
     {
-      "src": "images/t4.png",
+      "src": "./images/t4.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "images/t4.png",
+      "src": "./images/t4.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
