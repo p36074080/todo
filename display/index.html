@@ -27,19 +27,38 @@
     }
 
     .dashboard {
+      display: -webkit-flex; /* Fallback for older iOS */
       display: flex;
       height: 100vh;
       padding: 24px;
-      gap: 24px;
+      /* Fallback for older iOS/iPadOS that don't support gap */
+    }
+    
+    /* Fallback: use margin for older devices */
+    .dashboard > *:not(:last-child) {
+      margin-right: 24px;
+    }
+    
+    /* Modern browsers: use gap */
+    @supports (gap: 24px) {
+      .dashboard {
+        gap: 24px;
+      }
+      .dashboard > *:not(:last-child) {
+        margin-right: 0;
+      }
     }
 
     /* 左側：Todo */
     .todo-panel {
+      -webkit-flex: 1.1; /* Fallback for older iOS */
       flex: 1.1;
       background: #181818;
       border-radius: 18px;
       padding: 24px;
+      display: -webkit-flex; /* Fallback for older iOS */
       display: flex;
+      -webkit-flex-direction: column; /* Fallback for older iOS */
       flex-direction: column;
       overflow: hidden;
     }
@@ -51,9 +70,30 @@
     }
 
     .tabs {
+      display: -webkit-flex; /* Fallback for older iOS */
       display: flex;
-      gap: 12px;
       margin-bottom: 20px;
+      /* Fallback for older iOS/iPadOS */
+      margin-left: -6px;
+      margin-right: -6px;
+    }
+    
+    .tabs .tab {
+      margin-left: 6px;
+      margin-right: 6px;
+    }
+    
+    /* Modern browsers: use gap */
+    @supports (gap: 12px) {
+      .tabs {
+        gap: 12px;
+        margin-left: 0;
+        margin-right: 0;
+      }
+      .tabs .tab {
+        margin-left: 0;
+        margin-right: 0;
+      }
     }
 
     .tab {
@@ -75,24 +115,56 @@
     }
 
     .todo-list {
+      display: -webkit-flex; /* Fallback for older iOS */
       display: flex;
+      -webkit-flex-direction: column; /* Fallback for older iOS */
       flex-direction: column;
-      gap: 14px;
       overflow-y: auto;
+      -webkit-flex: 1; /* Fallback for older iOS */
       flex: 1;
+      /* Fallback for older iOS/iPadOS */
+    }
+    
+    .todo-list > *:not(:last-child) {
+      margin-bottom: 14px;
+    }
+    
+    /* Modern browsers: use gap */
+    @supports (gap: 14px) {
+      .todo-list {
+        gap: 14px;
+      }
+      .todo-list > *:not(:last-child) {
+        margin-bottom: 0;
+      }
     }
 
     .todo-item {
       display: flex;
       align-items: center;
-      gap: 14px;
       padding: 18px 20px;
       border-radius: 14px;
       background: #222;
       transition: transform 0.2s ease;
+      /* Fallback for older iOS/iPadOS */
+    }
+    
+    .todo-item > *:not(:last-child) {
+      margin-right: 14px;
+    }
+    
+    /* Modern browsers: use gap */
+    @supports (gap: 14px) {
+      .todo-item {
+        gap: 14px;
+      }
+      .todo-item > *:not(:last-child) {
+        margin-right: 0;
+      }
     }
 
     .todo-item:hover {
+      -webkit-transform: translateX(4px); /* Fallback for older iOS */
       transform: translateX(4px);
     }
 
@@ -109,10 +181,27 @@
     .shopping { background: #5fd39c; }  /* 採買 */
 
     .todo-content {
+      -webkit-flex: 1; /* Fallback for older iOS */
       flex: 1;
+      display: -webkit-flex; /* Fallback for older iOS */
       display: flex;
+      -webkit-flex-direction: column; /* Fallback for older iOS */
       flex-direction: column;
-      gap: 6px;
+      /* Fallback for older iOS/iPadOS */
+    }
+    
+    .todo-content > *:not(:last-child) {
+      margin-bottom: 6px;
+    }
+    
+    /* Modern browsers: use gap */
+    @supports (gap: 6px) {
+      .todo-content {
+        gap: 6px;
+      }
+      .todo-content > *:not(:last-child) {
+        margin-bottom: 0;
+      }
     }
 
     .todo-text {
@@ -125,6 +214,7 @@
       padding: 4px 10px;
       border-radius: 999px;
       font-weight: 500;
+      -webkit-align-self: flex-start; /* Fallback for older iOS */
       align-self: flex-start;
     }
 
@@ -134,9 +224,25 @@
 
     /* Assignee images */
     .assignee-images {
+      display: -webkit-flex; /* Fallback for older iOS */
       display: flex;
-      gap: 4px;
+      -webkit-align-items: center; /* Fallback for older iOS */
       align-items: center;
+      /* Fallback for older iOS/iPadOS */
+    }
+    
+    .assignee-images > *:not(:last-child) {
+      margin-right: 4px;
+    }
+    
+    /* Modern browsers: use gap */
+    @supports (gap: 4px) {
+      .assignee-images {
+        gap: 4px;
+      }
+      .assignee-images > *:not(:last-child) {
+        margin-right: 0;
+      }
     }
 
     .assignee-img {
@@ -146,13 +252,31 @@
       border-radius: 4px;
     }
 
+    /* Fallback for inline style gap in item-meta-row */
+    .item-meta-row > *:not(:last-child) {
+      margin-right: 8px;
+    }
+    
+    /* Modern browsers: use gap */
+    @supports (gap: 8px) {
+      .item-meta-row {
+        gap: 8px;
+      }
+      .item-meta-row > *:not(:last-child) {
+        margin-right: 0;
+      }
+    }
+
     /* 右側：行事曆 */
     .calendar-panel {
+      -webkit-flex: 1; /* Fallback for older iOS */
       flex: 1;
       background: #181818;
       border-radius: 18px;
       padding: 24px;
+      display: -webkit-flex; /* Fallback for older iOS */
       display: flex;
+      -webkit-flex-direction: column; /* Fallback for older iOS */
       flex-direction: column;
       overflow-y: auto;
       position: relative;
@@ -193,9 +317,25 @@
     }
 
     .event-list {
+      display: -webkit-flex; /* Fallback for older iOS */
       display: flex;
+      -webkit-flex-direction: column; /* Fallback for older iOS */
       flex-direction: column;
-      gap: 10px;
+      /* Fallback for older iOS/iPadOS */
+    }
+    
+    .event-list > *:not(:last-child) {
+      margin-bottom: 10px;
+    }
+    
+    /* Modern browsers: use gap */
+    @supports (gap: 10px) {
+      .event-list {
+        gap: 10px;
+      }
+      .event-list > *:not(:last-child) {
+        margin-bottom: 0;
+      }
     }
 
     .event {
@@ -492,7 +632,7 @@
             <div class="todo-dot ${subtype}"></div>
             <div class="todo-content">
               <div class="todo-text">${escapeHtml(item.text)}</div>
-              <div style="display: flex; align-items: center; gap: 8px; justify-content: space-between;">
+              <div style="display: flex; align-items: center; justify-content: space-between;" class="item-meta-row">
                 <div class="priority-badge priority-${item.priority}">${priorityLabel}</div>
                 ${assigneeHtml}
               </div>
