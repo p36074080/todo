@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="description" content="Couple Shared Memory - Editor App" />
+  <meta name="theme-color" content="#0f0f0f" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Memory Editor" />
+  <link rel="icon" type="image/png" href="images/t3.png" />
+  <link rel="apple-touch-icon" href="images/t3.png" />
+  <link rel="manifest" href="manifest.json" />
+  <title>家庭記事本</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang TC", sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      margin: 0;
+      background: #0f0f0f;
+      color: #f5f5f5;
+      padding-bottom: 100px;
+      touch-action: pan-y;
+    }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      gap: 8px;
+      padding: 16px;
+      position: sticky;
+      top: 0;
+      background: #0f0f0f;
+      z-index: 10;
+      border-bottom: 1px solid #2a2a2a;
+    }
+
+    .tab {
+      flex: 1;
+      text-align: center;
+      padding: 12px 0;
+      border-radius: 999px;
+      background: #2a2a2a;
+      opacity: 0.5;
+      cursor: pointer;
+      font-size: 15px;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .tab-icon {
+      width: 20px;
+      height: 20px;
+      object-fit: contain;
+    }
+
+    .tab.active {
+      background: #fff;
+      color: #111;
+      opacity: 1;
+      font-weight: 600;
+    }
+
+    /* List */
+    .list {
+      padding: 0 16px;
+    }
+
+    .item-wrapper {
+      position: relative;
+      margin-bottom: 12px;
+      overflow: hidden;
+      border-radius: 14px;
+      touch-action: pan-y;
+    }
+
+    .delete-btn {
+      position: absolute;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      width: 80px;
+      background: #ff5c5c;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      color: #fff;
+      z-index: 1;
+      cursor: pointer;
+    }
+
+    .item {
+      background: #1e1e1e;
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transform: translateX(0);
+      transition: transform 0.2s ease;
+      position: relative;
+      z-index: 2;
+      cursor: pointer;
+    }
+
+    .checkbox {
+      width: 24px;
+      height: 24px;
+      border: 2px solid #666;
+      border-radius: 6px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .checkbox.checked {
+      background: #5fd39c;
+      border-color: #5fd39c;
+    }
+
+    .checkbox.checked::after {
+      content: '✓';
+      color: #fff;
+      font-size: 16px;
+      font-weight: bold;
+    }
+
+    .item-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .text {
+      font-size: 16px;
+      line-height: 1.4;
+    }
+
+    .done {
+      opacity: 0.4;
+      text-decoration: line-through;
+    }
+
+    .item-meta {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+    }
+
+    /* Priority badge */
+    .priority {
+      font-size: 12px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-weight: 500;
+    }
+
+    /* Assignee images */
+    .assignee-images {
+      display: flex;
+      gap: 4px;
+      align-items: center;
+      margin-left: auto;
+    }
+
+    .assignee-img {
+      width: 30px;
+      height: 30px;
+      object-fit: cover;
+      border-radius: 4px;
+    }
+
+    .p-high { background: #ff6b6b; color: #fff; }
+    .p-mid { background: #f5b971; color: #111; }
+    .p-low { background: #7bdff2; color: #111; }
+
+    /* Add button */
+    .add-btn {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #fff;
+      color: #111;
+      border-radius: 999px;
+      padding: 16px 32px;
+      font-size: 18px;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      z-index: 100;
+      transition: transform 0.2s ease;
+    }
+
+    .add-btn:active {
+      transform: translateX(-50%) scale(0.95);
+    }
+
+    /* Bottom sheet */
+    .sheet-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 200;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .sheet-overlay.show {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .sheet {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: -100%;
+      background: #1a1a1a;
+      border-radius: 20px 20px 0 0;
+      padding: 24px;
+      transition: bottom 0.3s ease;
+      z-index: 201;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .sheet.show {
+      bottom: 0;
+    }
+
+    .sheet-title {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 20px;
+    }
+
+    .sheet-field {
+      margin-bottom: 16px;
+    }
+
+    .sheet-label {
+      display: block;
+      font-size: 14px;
+      opacity: 0.7;
+      margin-bottom: 8px;
+    }
+
+    .sheet input,
+    .sheet select {
+      width: 100%;
+      padding: 14px;
+      border-radius: 12px;
+      border: 1px solid #2a2a2a;
+      background: #222;
+      color: #f5f5f5;
+      font-size: 16px;
+    }
+
+    .sheet input:focus,
+    .sheet select:focus {
+      outline: none;
+      border-color: #4da3ff;
+    }
+
+    .sheet-buttons {
+      display: flex;
+      gap: 12px;
+      margin-top: 24px;
+    }
+
+    .sheet-btn {
+      flex: 1;
+      padding: 16px;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      transition: transform 0.2s ease;
+    }
+
+    .sheet-btn:active {
+      transform: scale(0.98);
+    }
+
+    .sheet-btn-primary {
+      background: #fff;
+      color: #111;
+    }
+
+    .sheet-btn-secondary {
+      background: #2a2a2a;
+      color: #f5f5f5;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      opacity: 0.5;
+      font-size: 16px;
+    }
+
+    .empty-state-image {
+      display: block;
+      margin: 20px auto 0;
+      max-width: 200px;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 40px 20px;
+      opacity: 0.6;
+      font-size: 16px;
+    }
+
+    /* Full screen loading overlay */
+    .loading-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.7);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      z-index: 10000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+
+    .loading-overlay.show {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .loading-top-image {
+      width: auto;
+      height: auto;
+      max-width: 200px;
+      max-height: 200px;
+    }
+
+    .loading-spinner {
+      width: 50px;
+      height: 50px;
+      border: 4px solid rgba(255, 255, 255, 0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Swipe animation */
+    .item-wrapper.swiping .item {
+      transition: none;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="tabs">
+    <div class="tab active" data-tab="todo">
+      <img src="images/t1.png" alt="" class="tab-icon" />
+      代辦事項
+    </div>
+    <div class="tab" data-tab="shopping">
+      <img src="images/t2.png" alt="" class="tab-icon" />
+      採買清單
+    </div>
+    <div class="tab" data-tab="done">
+      <img src="images/t3.png" alt="" class="tab-icon" />
+      已完成
+    </div>
+  </div>
+
+  <div class="list" id="list">
+    <div class="loading">載入中...</div>
+  </div>
+
+  <button class="add-btn" onclick="openSheet()">＋ 新增</button>
+
+  <!-- Loading Overlay -->
+  <div class="loading-overlay" id="loadingOverlay">
+    <img src="images/loading2.png" alt="" class="loading-top-image" />
+    <div class="loading-spinner"></div>
+  </div>
+
+  <!-- Bottom Sheet -->
+  <div class="sheet-overlay" id="sheetOverlay" onclick="closeSheet()"></div>
+  <div class="sheet" id="sheet">
+    <div class="sheet-title">新增項目</div>
+    
+    <div class="sheet-field">
+      <label class="sheet-label">內容 *</label>
+      <input id="newText" type="text" placeholder="要記錄的事情" />
+    </div>
+
+    <div class="sheet-field">
+      <label class="sheet-label">類型 *</label>
+      <select id="newType" onchange="onTypeChange()">
+        <option value="todo">代辦事項</option>
+        <option value="shopping">採買清單</option>
+      </select>
+    </div>
+
+    <div class="sheet-field" id="assigneeField">
+      <label class="sheet-label">負責人 *</label>
+      <select id="newAssignee" required>
+        <option value="熊熊" selected>熊熊</option>
+        <option value="貓貓">貓貓</option>
+        <option value="熊熊＆貓貓">熊熊＆貓貓</option>
+      </select>
+    </div>
+
+    <div class="sheet-field">
+      <label class="sheet-label">優先級 *</label>
+      <select id="newPriority">
+        <option value="high">🔥 緊急</option>
+        <option value="mid" selected>😆 還行</option>
+        <option value="low">⛄️ 不急</option>
+      </select>
+    </div>
+
+    <div class="sheet-buttons">
+      <button class="sheet-btn sheet-btn-secondary" onclick="closeSheet()">取消</button>
+      <button class="sheet-btn sheet-btn-primary" onclick="addItem()">新增</button>
+    </div>
+  </div>
+
+  <script>
+    // Configuration - 部署後請更新此 URL
+    const API_BASE_URL = 'https://script.google.com/macros/s/AKfycbwSqmHIvJoI8Vk-w2fkY_Ehu7DXhmKg5toCDxoivB6aBVgUTgKD96DHzIqELFIQ8kvy6A/exec';
+    
+    // State
+    let currentTab = 'todo';
+    let items = [];
+    let startX = 0;
+    let currentSwipeId = null;
+    const CACHE_KEY = 'editor_items_cache';
+    const CACHE_TIMESTAMP_KEY = 'editor_cache_timestamp';
+    const CACHE_DURATION = 2 * 60 * 1000; // 2 minutes
+
+    // DOM elements
+    const list = document.getElementById('list');
+    const sheet = document.getElementById('sheet');
+    const sheetOverlay = document.getElementById('sheetOverlay');
+    const newText = document.getElementById('newText');
+    const newType = document.getElementById('newType');
+    const newAssignee = document.getElementById('newAssignee');
+    const newPriority = document.getElementById('newPriority');
+    const assigneeField = document.getElementById('assigneeField');
+    const tabs = document.querySelectorAll('.tab');
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    const loadingTopImage = loadingOverlay.querySelector('.loading-top-image');
+
+    // Force reload APNG images to restart animation
+    function reloadLoadingImages() {
+      // Reload loading2.png in overlay
+      if (loadingTopImage) {
+        const timestamp = Date.now();
+        loadingTopImage.src = `images/loading2.png?t=${timestamp}`;
+      }
+    }
+
+    // Initialize
+    function init() {
+      // Load cached data first
+      loadCachedData();
+      
+      // Set up tabs
+      tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+          tabs.forEach(t => t.classList.remove('active'));
+          tab.classList.add('active');
+          currentTab = tab.dataset.tab;
+          // Show loading overlay when switching tabs
+          reloadLoadingImages(); // Reload APNG before showing
+          loadingOverlay.classList.add('show');
+          // Fetch fresh data when switching tabs
+          fetchItems();
+        });
+      });
+
+      // Initial fetch
+      fetchItems();
+    }
+
+    // Load cached data
+    function loadCachedData() {
+      try {
+        const cached = localStorage.getItem(CACHE_KEY);
+        const timestamp = localStorage.getItem(CACHE_TIMESTAMP_KEY);
+        
+        if (cached && timestamp && Date.now() - parseInt(timestamp) < CACHE_DURATION) {
+          items = JSON.parse(cached);
+          render();
+        }
+      } catch (e) {
+        console.error('Failed to load cache:', e);
+      }
+    }
+
+    // Fetch items from API
+    async function fetchItems() {
+      if (!API_BASE_URL || API_BASE_URL === 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE') {
+        console.error('Please set API_BASE_URL in the script');
+        list.innerHTML = '<div class="empty-state">請設定 API URL</div>';
+        return;
+      }
+
+      try {
+        let url = `${API_BASE_URL}?action=items`;
+        
+        if (currentTab === 'done') {
+          url += '&status=done';
+        } else {
+          url += `&status=active&type=${currentTab}`;
+        }
+
+        console.log('Fetching items from:', url);
+        const response = await fetch(url);
+        console.log('Response status:', response.status);
+        
+        const responseText = await response.text();
+        console.log('Response text:', responseText);
+        
+        let data;
+        try {
+          data = JSON.parse(responseText);
+        } catch (parseError) {
+          console.error('Failed to parse JSON:', parseError);
+          console.error('Response was:', responseText);
+          throw new Error('無法解析伺服器回應');
+        }
+        
+        if (data.error) {
+          console.error('API error:', data.error);
+          throw new Error(data.error);
+        }
+        
+        if (data.items) {
+          items = data.items;
+          localStorage.setItem(CACHE_KEY, JSON.stringify(items));
+          localStorage.setItem(CACHE_TIMESTAMP_KEY, Date.now().toString());
+          render();
+        } else {
+          console.warn('Unexpected response format:', data);
+          items = [];
+          render();
+        }
+        
+        // Remove loading overlay after data is loaded
+        setTimeout(() => {
+          loadingOverlay.classList.remove('show');
+        }, 300);
+      } catch (error) {
+        console.error('Failed to fetch items:', error);
+        loadingOverlay.classList.remove('show');
+        if (items.length > 0) {
+          render(); // Show cached data
+        } else {
+          list.innerHTML = '<div class="empty-state">載入失敗，請檢查網路連線<br>錯誤：' + (error.message || '未知錯誤') + '</div>';
+        }
+      }
+    }
+
+    // Render list
+    function render() {
+      list.innerHTML = '';
+
+      let filtered = items.filter(item => {
+        if (currentTab === 'done') {
+          return item.status === 'done';
+        } else {
+          return item.type === currentTab && item.status === 'active';
+        }
+      });
+
+      // Sort
+      if (currentTab === 'done') {
+        // Done list: updatedAt desc
+        filtered.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+      } else {
+        // Active lists: priority asc (high first), then updatedAt desc
+        const priorityOrder = { high: 1, mid: 2, low: 3 };
+        filtered.sort((a, b) => {
+          const priorityDiff = (priorityOrder[a.priority] || 99) - (priorityOrder[b.priority] || 99);
+          if (priorityDiff !== 0) return priorityDiff;
+          return (b.updatedAt || 0) - (a.updatedAt || 0);
+        });
+      }
+
+      if (filtered.length === 0) {
+        const timestamp = Date.now();
+        list.innerHTML = `
+          <div class="empty-state">
+            目前沒有項目
+            <img src="images/loading.png?t=${timestamp}" alt="" class="empty-state-image" />
+          </div>
+        `;
+        return;
+      }
+
+      filtered.forEach(item => {
+        const wrap = document.createElement('div');
+        wrap.className = 'item-wrapper';
+        wrap.dataset.id = item.id;
+
+        const priorityLabel = {
+          high: '緊急',
+          mid: '還行',
+          low: '不急'
+        }[item.priority] || item.priority;
+
+        const isDone = item.status === 'done';
+        const assignee = item.assignee || '';
+
+        // Generate assignee images HTML
+        let assigneeHtml = '';
+        if (assignee) {
+          if (assignee === '熊熊＆貓貓' || assignee === '熊熊&貓貓') {
+            assigneeHtml = `
+              <div class="assignee-images">
+                <img src="images/bear.png" alt="熊熊" class="assignee-img" />
+                <img src="images/cat.png" alt="貓貓" class="assignee-img" />
+              </div>
+            `;
+          } else if (assignee === '熊熊') {
+            assigneeHtml = `
+              <div class="assignee-images">
+                <img src="images/bear.png" alt="熊熊" class="assignee-img" />
+              </div>
+            `;
+          } else if (assignee === '貓貓') {
+            assigneeHtml = `
+              <div class="assignee-images">
+                <img src="images/cat.png" alt="貓貓" class="assignee-img" />
+              </div>
+            `;
+          }
+        }
+
+        wrap.innerHTML = `
+          <div class="delete-btn" onclick="archiveItem('${item.id}')">刪除</div>
+          <div class="item">
+            <div class="checkbox ${isDone ? 'checked' : ''}" onclick="toggleStatus('${item.id}')"></div>
+            <div class="item-content">
+              <div class="text ${isDone ? 'done' : ''}">${escapeHtml(item.text)}</div>
+              <div class="item-meta">
+                <div class="priority p-${item.priority}">${priorityLabel}</div>
+                ${assigneeHtml}
+              </div>
+            </div>
+          </div>
+        `;
+
+        // Swipe to delete
+        const itemEl = wrap.querySelector('.item');
+        let startX = 0;
+        let currentX = 0;
+
+        itemEl.addEventListener('touchstart', (e) => {
+          startX = e.touches[0].clientX;
+          wrap.classList.add('swiping');
+        });
+
+        itemEl.addEventListener('touchmove', (e) => {
+          currentX = e.touches[0].clientX - startX;
+          if (currentX < 0 && !isDone) {
+            itemEl.style.transform = `translateX(${Math.max(currentX, -80)}px)`;
+          }
+        });
+
+        itemEl.addEventListener('touchend', () => {
+          wrap.classList.remove('swiping');
+          if (currentX < -60 && !isDone) {
+            itemEl.style.transform = 'translateX(-80px)';
+            currentSwipeId = item.id;
+          } else {
+            itemEl.style.transform = 'translateX(0)';
+            currentSwipeId = null;
+          }
+        });
+
+        list.appendChild(wrap);
+      });
+    }
+
+    // Toggle item status
+    async function toggleStatus(id) {
+      const item = items.find(i => i.id === id);
+      if (!item) return;
+
+      const newStatus = item.status === 'active' ? 'done' : 'active';
+      
+      // Show loading overlay
+      reloadLoadingImages(); // Reload APNG before showing
+      loadingOverlay.classList.add('show');
+
+      try {
+        const formData = new FormData();
+        formData.append('payload', JSON.stringify({
+          action: 'update',
+          id: id,
+          status: newStatus
+        }));
+        
+        const response = await fetch(API_BASE_URL, {
+          method: 'POST',
+          body: formData
+        });
+
+        const data = await response.json();
+        if (data.success) {
+          item.status = newStatus;
+          item.updatedAt = Date.now();
+          localStorage.setItem(CACHE_KEY, JSON.stringify(items));
+          render();
+          
+          // Remove loading overlay after a short delay
+          setTimeout(() => {
+            loadingOverlay.classList.remove('show');
+          }, 300);
+        } else {
+          loadingOverlay.classList.remove('show');
+          alert('更新失敗，請稍後再試');
+        }
+      } catch (error) {
+        console.error('Failed to update item:', error);
+        loadingOverlay.classList.remove('show');
+        alert('更新失敗，請稍後再試');
+      }
+    }
+
+    // Archive item
+    async function archiveItem(id) {
+      if (!confirm('確定要刪除這個項目嗎？')) return;
+
+      // Show loading overlay
+      reloadLoadingImages(); // Reload APNG before showing
+      loadingOverlay.classList.add('show');
+
+      try {
+        const formData = new FormData();
+        formData.append('payload', JSON.stringify({
+          action: 'archive',
+          id: id
+        }));
+        
+        const response = await fetch(API_BASE_URL, {
+          method: 'POST',
+          body: formData
+        });
+
+        const data = await response.json();
+        if (data.success) {
+          items = items.filter(i => i.id !== id);
+          localStorage.setItem(CACHE_KEY, JSON.stringify(items));
+          render();
+          
+          // Remove loading overlay after a short delay
+          setTimeout(() => {
+            loadingOverlay.classList.remove('show');
+          }, 300);
+        } else {
+          loadingOverlay.classList.remove('show');
+          alert('刪除失敗，請稍後再試');
+        }
+      } catch (error) {
+        console.error('Failed to archive item:', error);
+        loadingOverlay.classList.remove('show');
+        alert('刪除失敗，請稍後再試');
+      }
+    }
+
+    // Open add sheet
+    function openSheet() {
+      sheet.classList.add('show');
+      sheetOverlay.classList.add('show');
+      // Reset form
+      newText.value = '';
+      newType.value = 'todo';
+      newPriority.value = 'mid';
+      newAssignee.value = '熊熊'; // Default assignee
+      // assigneeField is always visible for both todo and shopping
+      newText.focus();
+    }
+
+    // Close add sheet
+    function closeSheet() {
+      sheet.classList.remove('show');
+      sheetOverlay.classList.remove('show');
+      newText.value = '';
+      newType.value = 'todo';
+      newPriority.value = 'mid';
+      newAssignee.value = '熊熊'; // Reset to default
+    }
+
+    // Handle type change (no longer needed, but keeping for compatibility)
+    function onTypeChange() {
+      // assigneeField is always visible for both todo and shopping
+    }
+
+    // Add new item
+    async function addItem() {
+      const text = newText.value.trim();
+      if (!text) {
+        alert('請輸入內容');
+        return;
+      }
+
+      // Validate assignee (required)
+      if (!newAssignee.value) {
+        alert('請選擇負責人');
+        return;
+      }
+
+      const itemData = {
+        action: 'create',
+        text: text,
+        type: newType.value,
+        priority: newPriority.value,
+        assignee: newAssignee.value // Required field
+      };
+
+      // Show loading overlay
+      reloadLoadingImages(); // Reload APNG before showing
+      loadingOverlay.classList.add('show');
+      closeSheet(); // Close sheet immediately when loading starts
+
+      try {
+        console.log('Sending request:', itemData);
+        console.log('API URL:', API_BASE_URL);
+        
+        // Use FormData to avoid CORS preflight issues
+        const formData = new FormData();
+        formData.append('payload', JSON.stringify(itemData));
+        
+        const response = await fetch(API_BASE_URL, {
+          method: 'POST',
+          body: formData
+        });
+
+        console.log('Response status:', response.status, response.statusText);
+        
+        // Get response text first to see what we're getting
+        const responseText = await response.text();
+        console.log('Response text:', responseText);
+
+        let data;
+        try {
+          data = JSON.parse(responseText);
+        } catch (parseError) {
+          console.error('Failed to parse JSON:', parseError);
+          console.error('Response was:', responseText);
+          loadingOverlay.classList.remove('show');
+          alert('伺服器回應格式錯誤，請檢查 Console');
+          return;
+        }
+
+        console.log('Parsed data:', data);
+
+        if (data.error) {
+          console.error('API error:', data.error);
+          loadingOverlay.classList.remove('show');
+          alert('新增失敗：' + data.error);
+          return;
+        }
+
+        if (data.success && data.item) {
+          items.push(data.item);
+          localStorage.setItem(CACHE_KEY, JSON.stringify(items));
+          
+          // Always switch to the correct tab based on item type
+          const targetTabType = data.item.type; // 'todo' or 'shopping'
+          const targetTab = document.querySelector(`[data-tab="${targetTabType}"]`);
+          
+          if (targetTab && currentTab !== targetTabType) {
+            // Switch to the correct tab
+            tabs.forEach(t => t.classList.remove('active'));
+            targetTab.classList.add('active');
+            currentTab = targetTabType;
+          }
+          
+          // Fetch fresh data and render
+          await fetchItems();
+          
+          // Remove loading overlay after a short delay
+          setTimeout(() => {
+            loadingOverlay.classList.remove('show');
+          }, 300);
+        } else {
+          console.error('Unexpected response format:', data);
+          loadingOverlay.classList.remove('show');
+          alert('新增失敗：回應格式不正確，請檢查 Console');
+        }
+      } catch (error) {
+        console.error('Failed to create item:', error);
+        console.error('Error details:', error.message, error.stack);
+        loadingOverlay.classList.remove('show');
+        alert('新增失敗：' + (error.message || '請稍後再試') + '\n請檢查 Console 查看詳細錯誤');
+      }
+    }
+
+    // Helper: Escape HTML
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // Start app
+    init();
+  </script>
+</body>
+</html>

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>API 測試</title>
+</head>
+<body>
+  <h1>Google Apps Script API 測試</h1>
+  <button onclick="testGet()">測試 GET</button>
+  <button onclick="testPost()">測試 POST</button>
+  <pre id="result"></pre>
+
+  <script>
+    const API_BASE_URL = 'https://script.google.com/macros/s/AKfycbwSqmHIvJoI8Vk-w2fkY_Ehu7DXhmKg5toCDxoivB6aBVgUTgKD96DHzIqELFIQ8kvy6A/exec';
+    const result = document.getElementById('result');
+
+    async function testGet() {
+      result.textContent = '測試 GET 請求...';
+      try {
+        const url = `${API_BASE_URL}?action=items&status=active`;
+        console.log('GET URL:', url);
+        const response = await fetch(url);
+        console.log('Response:', response);
+        const text = await response.text();
+        console.log('Response text:', text);
+        result.textContent = `GET 成功:\n${JSON.stringify(JSON.parse(text), null, 2)}`;
+      } catch (error) {
+        result.textContent = `GET 失敗:\n${error.message}\n${error.stack}`;
+        console.error('GET Error:', error);
+      }
+    }
+
+    async function testPost() {
+      result.textContent = '測試 POST 請求...';
+      try {
+        const data = {
+          action: 'create',
+          text: '測試項目',
+          type: 'todo',
+          priority: 'high'
+        };
+        console.log('POST data:', data);
+        console.log('POST URL:', API_BASE_URL);
+        
+        const response = await fetch(API_BASE_URL, {
+          method: 'POST',
+          mode: 'cors',
+          redirect: 'follow',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(data)
+        });
+        
+        console.log('Response status:', response.status);
+        console.log('Response headers:', [...response.headers.entries()]);
+        
+        const text = await response.text();
+        console.log('Response text:', text);
+        
+        try {
+          const json = JSON.parse(text);
+          result.textContent = `POST 成功:\n${JSON.stringify(json, null, 2)}`;
+        } catch (e) {
+          result.textContent = `POST 回應不是 JSON:\n${text}`;
+        }
+      } catch (error) {
+        result.textContent = `POST 失敗:\n${error.message}\n${error.stack}`;
+        console.error('POST Error:', error);
+      }
+    }
+  </script>
+</body>
+</html>

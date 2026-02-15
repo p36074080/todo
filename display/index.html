@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="description" content="Couple Shared Memory - XR Display Dashboard" />
+  <meta name="theme-color" content="#0f0f0f" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="XR Display" />
+  <link rel="icon" type="image/png" href="images/t4.png" />
+  <link rel="apple-touch-icon" href="images/t4.png" />
+  <link rel="manifest" href="manifest.json" />
+  <title>記事牆</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang TC", "Helvetica Neue", Arial, sans-serif;
+    }
+
+    body {
+      margin: 0;
+      background: #0f0f0f;
+      color: #f5f5f5;
+      overflow: hidden;
+    }
+
+    .dashboard {
+      display: flex;
+      height: 100vh;
+      padding: 24px;
+      gap: 24px;
+    }
+
+    /* 左側：Todo */
+    .todo-panel {
+      flex: 1.1;
+      background: #181818;
+      border-radius: 18px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .panel-title {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 16px;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .tab {
+      padding: 10px 20px;
+      border-radius: 999px;
+      background: #2a2a2a;
+      font-size: 16px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      opacity: 0.6;
+      user-select: none;
+    }
+
+    .tab.active {
+      opacity: 1;
+      background: #ffffff;
+      color: #111;
+      font-weight: 600;
+    }
+
+    .todo-list {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    .todo-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 18px 20px;
+      border-radius: 14px;
+      background: #222;
+      transition: transform 0.2s ease;
+    }
+
+    .todo-item:hover {
+      transform: translateX(4px);
+    }
+
+    .todo-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    /* 顏色語意 */
+    .task { background: #4da3ff; }      /* 要做的事 */
+    .discuss { background: #b48cff; }   /* 要討論 */
+    .shopping { background: #5fd39c; }  /* 採買 */
+
+    .todo-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .todo-text {
+      font-size: 18px;
+      line-height: 1.4;
+    }
+
+    .priority-badge {
+      font-size: 12px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-weight: 500;
+      align-self: flex-start;
+    }
+
+    .priority-high { background: #ff6b6b; color: #fff; }
+    .priority-mid { background: #f5b971; color: #111; }
+    .priority-low { background: #7bdff2; color: #111; }
+
+    /* Assignee images */
+    .assignee-images {
+      display: flex;
+      gap: 4px;
+      align-items: center;
+    }
+
+    .assignee-img {
+      width: 30px;
+      height: 30px;
+      object-fit: cover;
+      border-radius: 4px;
+    }
+
+    /* 右側：行事曆 */
+    .calendar-panel {
+      flex: 1;
+      background: #181818;
+      border-radius: 18px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      position: relative;
+    }
+
+    .calendar-bg-image {
+      position: absolute;
+      bottom: 12px;
+      right: 12px;
+      width: 150px;
+      height: auto;
+      opacity: 0.3;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .calendar-content {
+      position: relative;
+      z-index: 1;
+    }
+
+    .calendar-day {
+      border-bottom: 1px solid #2a2a2a;
+      padding-bottom: 18px;
+      margin-bottom: 18px;
+    }
+
+    .calendar-day:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
+    }
+
+    .day-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      opacity: 0.9;
+    }
+
+    .event-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .event {
+      font-size: 18px;
+      line-height: 1.5;
+    }
+
+    .event-time {
+      font-size: 14px;
+      opacity: 0.6;
+      margin-right: 8px;
+      font-weight: 500;
+    }
+
+    .event-time-end {
+      font-size: 14px;
+      opacity: 0.5;
+      margin-left: 4px;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      opacity: 0.5;
+      font-size: 16px;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 40px 20px;
+      opacity: 0.6;
+      font-size: 16px;
+    }
+
+    /* Full screen loading overlay */
+    .loading-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+
+    .loading-overlay.show {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .loading-spinner {
+      width: 50px;
+      height: 50px;
+      border: 4px solid rgba(255, 255, 255, 0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* 強制橫向顯示 */
+    @media screen and (orientation: portrait) {
+      body::before {
+        content: "請將裝置轉為橫向顯示";
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(0, 0, 0, 0.9);
+        color: #fff;
+        padding: 20px 40px;
+        border-radius: 12px;
+        z-index: 9999;
+        font-size: 18px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="dashboard">
+    <!-- 左：Todo -->
+    <div class="todo-panel">
+      <div class="panel-title">待辦事項</div>
+      <div class="tabs">
+        <div class="tab active" data-tab="todo">代辦事項</div>
+        <div class="tab" data-tab="shopping">採買清單</div>
+      </div>
+
+      <div class="todo-list" id="todoList">
+        <div class="loading">載入中...</div>
+      </div>
+    </div>
+
+    <!-- 右：行事曆 -->
+    <div class="calendar-panel">
+      <img src="images/bg.png" alt="" class="calendar-bg-image" />
+      <div class="calendar-content">
+        <div class="panel-title">行事曆</div>
+        <div id="calendarList">
+          <div class="loading">載入中...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+      <div class="loading-spinner"></div>
+    </div>
+  </div>
+
+  <script>
+    // Configuration - 部署後請更新此 URL
+    const API_BASE_URL = 'https://script.google.com/macros/s/AKfycbwSqmHIvJoI8Vk-w2fkY_Ehu7DXhmKg5toCDxoivB6aBVgUTgKD96DHzIqELFIQ8kvy6A/exec';
+    
+    // State
+    let currentTab = 'todo';
+    let cachedItems = null;
+    let cachedCalendar = null;
+    const CACHE_KEY_ITEMS = 'xr_items_cache';
+    const CACHE_KEY_CALENDAR = 'xr_calendar_cache';
+    const CACHE_TIMESTAMP_KEY = 'xr_cache_timestamp';
+    const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
+    // DOM elements
+    const todoList = document.getElementById('todoList');
+    const calendarList = document.getElementById('calendarList');
+    const tabs = document.querySelectorAll('.tab');
+    const loadingOverlay = document.getElementById('loadingOverlay');
+
+    // Initialize
+    function init() {
+      // Load cached data first
+      loadCachedData();
+      
+      // Set up tabs
+      tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+          tabs.forEach(t => t.classList.remove('active'));
+          tab.classList.add('active');
+          currentTab = tab.dataset.tab;
+          // Show loading overlay when switching tabs
+          loadingOverlay.classList.add('show');
+          // Fetch fresh data when switching tabs
+          fetchData();
+        });
+      });
+
+      // Initial load
+      fetchData();
+      
+      // Auto-refresh data every 7 minutes
+      setInterval(fetchData, 7 * 60 * 1000); // 7 minutes
+      
+      // Auto-refresh page every 30 minutes
+      setInterval(() => {
+        location.reload();
+      }, 30 * 60 * 1000); // 30 minutes
+    }
+
+    // Load cached data from localStorage
+    function loadCachedData() {
+      try {
+        const cached = localStorage.getItem(CACHE_KEY_ITEMS);
+        const cachedCal = localStorage.getItem(CACHE_KEY_CALENDAR);
+        const timestamp = localStorage.getItem(CACHE_TIMESTAMP_KEY);
+        
+        if (cached && timestamp && Date.now() - parseInt(timestamp) < CACHE_DURATION) {
+          cachedItems = JSON.parse(cached);
+          renderItems();
+        }
+        
+        if (cachedCal && timestamp && Date.now() - parseInt(timestamp) < CACHE_DURATION) {
+          cachedCalendar = JSON.parse(cachedCal);
+          renderCalendar();
+        }
+      } catch (e) {
+        console.error('Failed to load cache:', e);
+      }
+    }
+
+    // Fetch data from API
+    async function fetchData() {
+      if (!API_BASE_URL || API_BASE_URL === 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE') {
+        console.error('Please set API_BASE_URL in the script');
+        todoList.innerHTML = '<div class="empty-state">請設定 API URL</div>';
+        return;
+      }
+
+      try {
+        // Fetch items
+        const itemsUrl = `${API_BASE_URL}?action=items&view=xr&type=${currentTab}&status=active`;
+        const itemsResponse = await fetch(itemsUrl);
+        const itemsData = await itemsResponse.json();
+        
+        if (itemsData.items) {
+          cachedItems = itemsData.items;
+          localStorage.setItem(CACHE_KEY_ITEMS, JSON.stringify(cachedItems));
+          localStorage.setItem(CACHE_TIMESTAMP_KEY, Date.now().toString());
+          renderItems();
+        }
+
+        // Fetch calendar
+        const calendarUrl = `${API_BASE_URL}?action=calendar&days=5`;
+        const calendarResponse = await fetch(calendarUrl);
+        const calendarData = await calendarResponse.json();
+        
+        if (calendarData.days) {
+          cachedCalendar = calendarData.days;
+          localStorage.setItem(CACHE_KEY_CALENDAR, JSON.stringify(cachedCalendar));
+          renderCalendar();
+        }
+        
+        // Remove loading overlay after data is loaded
+        setTimeout(() => {
+          loadingOverlay.classList.remove('show');
+        }, 300);
+      } catch (error) {
+        console.error('Failed to fetch data:', error);
+        loadingOverlay.classList.remove('show');
+        // Show cached data if available
+        if (cachedItems) renderItems();
+        if (cachedCalendar) renderCalendar();
+      }
+    }
+
+    // Render items list
+    function renderItems() {
+      if (!cachedItems) {
+        todoList.innerHTML = '<div class="loading">載入中...</div>';
+        return;
+      }
+
+      const filtered = cachedItems.filter(item => item.type === currentTab && item.status === 'active');
+      
+      if (filtered.length === 0) {
+        todoList.innerHTML = '<div class="empty-state">目前沒有項目</div>';
+        return;
+      }
+
+      // Sort: priority (high -> mid -> low), then updatedAt desc
+      const priorityOrder = { high: 1, mid: 2, low: 3 };
+      filtered.sort((a, b) => {
+        const priorityDiff = (priorityOrder[a.priority] || 99) - (priorityOrder[b.priority] || 99);
+        if (priorityDiff !== 0) return priorityDiff;
+        return (b.updatedAt || 0) - (a.updatedAt || 0);
+      });
+
+      todoList.innerHTML = filtered.map(item => {
+        const subtype = item.subtype || (item.type === 'shopping' ? 'shopping' : 'task');
+        const priorityLabel = {
+          high: '緊急',
+          mid: '還行',
+          low: '不急'
+        }[item.priority] || item.priority;
+        const assignee = item.assignee || '';
+
+        // Generate assignee images HTML
+        let assigneeHtml = '';
+        if (assignee) {
+          if (assignee === '熊熊＆貓貓' || assignee === '熊熊&貓貓') {
+            assigneeHtml = `
+              <div class="assignee-images">
+                <img src="images/bear.png" alt="熊熊" class="assignee-img" />
+                <img src="images/cat.png" alt="貓貓" class="assignee-img" />
+              </div>
+            `;
+          } else if (assignee === '熊熊') {
+            assigneeHtml = `
+              <div class="assignee-images">
+                <img src="images/bear.png" alt="熊熊" class="assignee-img" />
+              </div>
+            `;
+          } else if (assignee === '貓貓') {
+            assigneeHtml = `
+              <div class="assignee-images">
+                <img src="images/cat.png" alt="貓貓" class="assignee-img" />
+              </div>
+            `;
+          }
+        }
+
+        return `
+          <div class="todo-item">
+            <div class="todo-dot ${subtype}"></div>
+            <div class="todo-content">
+              <div class="todo-text">${escapeHtml(item.text)}</div>
+              <div style="display: flex; align-items: center; gap: 8px; justify-content: space-between;">
+                <div class="priority-badge priority-${item.priority}">${priorityLabel}</div>
+                ${assigneeHtml}
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Render calendar
+    function renderCalendar() {
+      if (!cachedCalendar) {
+        calendarList.innerHTML = '<div class="loading">載入中...</div>';
+        return;
+      }
+
+      if (cachedCalendar.length === 0) {
+        calendarList.innerHTML = '<div class="empty-state">未來五天沒有活動</div>';
+        return;
+      }
+
+      calendarList.innerHTML = cachedCalendar.map(day => {
+        // 轉換日期標籤為中文
+        let dayLabel = day.label;
+        if (dayLabel === 'Today') dayLabel = '今天';
+        else if (dayLabel === 'Tomorrow') dayLabel = '明天';
+        else if (dayLabel === 'Day+2') dayLabel = '後天';
+        
+        const eventsHtml = day.events.length > 0
+          ? day.events.map(event => {
+              // 顯示開始時間和結束時間
+              const timeDisplay = event.end 
+                ? `${event.start} - ${event.end}`
+                : event.start;
+              return `
+                <div class="event">
+                  <span class="event-time">${timeDisplay}</span>
+                  ${escapeHtml(event.title)}
+                </div>
+              `;
+            }).join('')
+          : '<div class="empty-state" style="padding: 10px 0;">沒有活動</div>';
+
+        return `
+          <div class="calendar-day">
+            <div class="day-title">${dayLabel}（${formatDateDisplay(day.date)}）</div>
+            <div class="event-list">${eventsHtml}</div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Helper: Escape HTML
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // Helper: Format date for display
+    function formatDateDisplay(dateStr) {
+      const date = new Date(dateStr + 'T00:00:00');
+      const month = date.getMonth() + 1;
+      const day = date.getDate();
+      return `${month}/${day}`;
+    }
+
+    // Start app
+    init();
+  </script>
+</body>
+</html>
