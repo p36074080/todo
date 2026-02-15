@@ -388,7 +388,7 @@
   <div class="tabs">
     <div class="tab active" data-tab="todo">
       <img src="images/t1.png" alt="" class="tab-icon" />
-      代辦事項
+      待辦事項
     </div>
     <div class="tab" data-tab="shopping">
       <img src="images/t2.png" alt="" class="tab-icon" />
@@ -425,7 +425,7 @@
     <div class="sheet-field">
       <label class="sheet-label">類型 *</label>
       <select id="newType" onchange="onTypeChange()">
-        <option value="todo">代辦事項</option>
+        <option value="todo">待辦事項</option>
         <option value="shopping">採買清單</option>
       </select>
     </div>
@@ -806,11 +806,16 @@
       sheetOverlay.classList.add('show');
       // Reset form
       newText.value = '';
-      newType.value = 'todo';
+      // Set type based on current tab (todo or shopping)
+      if (currentTab === 'shopping') {
+        newType.value = 'shopping';
+      } else {
+        newType.value = 'todo';
+      }
       newPriority.value = 'mid';
       newAssignee.value = '熊熊'; // Default assignee
       // assigneeField is always visible for both todo and shopping
-      newText.focus();
+      // Don't auto-focus on any input field
     }
 
     // Close add sheet
