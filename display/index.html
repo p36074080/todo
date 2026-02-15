@@ -125,28 +125,29 @@
       /* Fallback for older iOS/iPadOS */
     }
     
-    .todo-list > *:not(:last-child) {
-      margin-bottom: 14px;
-    }
-    
     /* Modern browsers: use gap */
     @supports (gap: 14px) {
       .todo-list {
         gap: 14px;
       }
-      .todo-list > *:not(:last-child) {
-        margin-bottom: 0;
-      }
     }
 
     .todo-item {
+      display: -webkit-flex; /* Fallback for older iOS */
       display: flex;
+      -webkit-align-items: center; /* Fallback for older iOS */
       align-items: center;
       padding: 18px 20px;
       border-radius: 14px;
       background: #222;
+      -webkit-transition: -webkit-transform 0.2s ease; /* Fallback for older iOS */
       transition: transform 0.2s ease;
-      /* Fallback for older iOS/iPadOS */
+      /* Fallback for older iOS/iPadOS - spacing between items */
+      margin-bottom: 14px;
+    }
+    
+    .todo-item:last-child {
+      margin-bottom: 0;
     }
     
     .todo-item > *:not(:last-child) {
@@ -157,6 +158,7 @@
     @supports (gap: 14px) {
       .todo-item {
         gap: 14px;
+        margin-bottom: 0; /* Remove margin when gap is supported */
       }
       .todo-item > *:not(:last-child) {
         margin-right: 0;
