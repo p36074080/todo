@@ -2,7 +2,7 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="description" content="Couple Shared Memory - Editor App" />
   <meta name="theme-color" content="#0f0f0f" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -28,6 +28,11 @@
       touch-action: pan-y;
     }
 
+    /* iOS PWA safe-area support for body */
+    .is-standalone body {
+      padding-bottom: calc(100px + env(safe-area-inset-bottom, 0px));
+    }
+
     /* Tabs */
     .tabs {
       display: flex;
@@ -40,20 +45,26 @@
       border-bottom: 1px solid #2a2a2a;
     }
 
+    /* iOS PWA safe-area support */
+    .is-standalone .tabs {
+      padding-top: calc(env(safe-area-inset-top, 0px) + 16px);
+    }
+
     .tab {
       flex: 1;
       text-align: center;
-      padding: 12px 0;
+      padding: 14px 0; /* Increased to ensure ≥ 44px touch target */
+      min-height: 44px; /* iOS minimum touch target */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
       border-radius: 999px;
       background: #2a2a2a;
       opacity: 0.5;
       cursor: pointer;
       font-size: 15px;
       transition: all 0.2s ease;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
     }
 
     .tab-icon {
@@ -466,6 +477,13 @@
     const CACHE_KEY = 'editor_items_cache';
     const CACHE_TIMESTAMP_KEY = 'editor_cache_timestamp';
     const CACHE_DURATION = 2 * 60 * 1000; // 2 minutes
+
+    // Detect iOS PWA standalone mode
+    const isStandalone =
+      window.navigator.standalone === true ||
+      window.matchMedia('(display-mode: standalone)').matches;
+    
+    document.documentElement.classList.toggle('is-standalone', isStandalone);
 
     // DOM elements
     const list = document.getElementById('list');
