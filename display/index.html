@@ -2,7 +2,7 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="description" content="Couple Shared Memory - XR Display Dashboard" />
   <meta name="theme-color" content="#0f0f0f" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -19,34 +19,34 @@
       font-family: -apple-system, BlinkMacSystemFont, "PingFang TC", "Helvetica Neue", Arial, sans-serif;
     }
 
-    body {
+    html, body {
       margin: 0;
+      padding: 0;
+      height: 100%; /* Use percentage for iOS 12 compatibility */
+    }
+
+    body {
       background: #0f0f0f;
       color: #f5f5f5;
       overflow: hidden;
+      min-height: 100%; /* Ensure full height */
     }
 
     .dashboard {
       display: -webkit-flex; /* Fallback for older iOS */
       display: flex;
-      height: 100vh;
+      min-height: 100%; /* Use percentage instead of dvh for iOS 12 compatibility */
       padding: 24px;
-      /* Fallback for older iOS/iPadOS that don't support gap */
+      /* Safe area support for iOS PWA (iOS 12 will fallback to 0) */
+      padding-top: calc(24px + env(safe-area-inset-top, 0px));
+      padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+      padding-left: calc(24px + env(safe-area-inset-left, 0px));
+      padding-right: calc(24px + env(safe-area-inset-right, 0px));
     }
     
-    /* Fallback: use margin for older devices */
+    /* Stable spacing between panels using sibling selector */
     .dashboard > *:not(:last-child) {
       margin-right: 24px;
-    }
-    
-    /* Modern browsers: use gap */
-    @supports (gap: 24px) {
-      .dashboard {
-        gap: 24px;
-      }
-      .dashboard > *:not(:last-child) {
-        margin-right: 0;
-      }
     }
 
     /* 左側：Todo */
@@ -73,31 +73,26 @@
       display: -webkit-flex; /* Fallback for older iOS */
       display: flex;
       margin-bottom: 20px;
-      /* Fallback for older iOS/iPadOS */
       margin-left: -6px;
       margin-right: -6px;
     }
     
+    /* Stable spacing between tabs using sibling selector */
     .tabs .tab {
       margin-left: 6px;
       margin-right: 6px;
     }
     
-    /* Modern browsers: use gap */
-    @supports (gap: 12px) {
-      .tabs {
-        gap: 12px;
-        margin-left: 0;
-        margin-right: 0;
-      }
-      .tabs .tab {
-        margin-left: 0;
-        margin-right: 0;
-      }
+    .tabs .tab + .tab {
+      margin-left: 6px;
     }
 
     .tab {
-      padding: 10px 20px;
+      padding: 12px 20px; /* Increased padding */
+      min-height: 44px; /* iOS minimum touch target */
+      display: flex;
+      align-items: center;
+      justify-content: center;
       border-radius: 999px;
       background: #2a2a2a;
       font-size: 16px;
@@ -122,14 +117,6 @@
       overflow-y: auto;
       -webkit-flex: 1; /* Fallback for older iOS */
       flex: 1;
-      /* Fallback for older iOS/iPadOS */
-    }
-    
-    /* Modern browsers: use gap */
-    @supports (gap: 14px) {
-      .todo-list {
-        gap: 14px;
-      }
     }
 
     .todo-item {
@@ -137,32 +124,22 @@
       display: flex;
       -webkit-align-items: center; /* Fallback for older iOS */
       align-items: center;
-      padding: 18px 20px;
+      padding: 20px 24px; /* Increased padding for better readability on old screens */
       border-radius: 14px;
       background: #222;
       -webkit-transition: -webkit-transform 0.2s ease; /* Fallback for older iOS */
       transition: transform 0.2s ease;
-      /* Fallback for older iOS/iPadOS - spacing between items */
-      margin-bottom: 14px;
+      margin: 0; /* Reset margin */
     }
     
-    .todo-item:last-child {
-      margin-bottom: 0;
+    /* Stable spacing between todo items using sibling selector */
+    .todo-item + .todo-item {
+      margin-top: 16px; /* Stable, suitable for iPad dashboard */
     }
     
+    /* Spacing between todo-item children */
     .todo-item > *:not(:last-child) {
       margin-right: 14px;
-    }
-    
-    /* Modern browsers: use gap */
-    @supports (gap: 14px) {
-      .todo-item {
-        gap: 14px;
-        margin-bottom: 0; /* Remove margin when gap is supported */
-      }
-      .todo-item > *:not(:last-child) {
-        margin-right: 0;
-      }
     }
 
     .todo-item:hover {
@@ -189,26 +166,16 @@
       display: flex;
       -webkit-flex-direction: column; /* Fallback for older iOS */
       flex-direction: column;
-      /* Fallback for older iOS/iPadOS */
     }
     
+    /* Stable spacing between todo-content children */
     .todo-content > *:not(:last-child) {
-      margin-bottom: 6px;
-    }
-    
-    /* Modern browsers: use gap */
-    @supports (gap: 6px) {
-      .todo-content {
-        gap: 6px;
-      }
-      .todo-content > *:not(:last-child) {
-        margin-bottom: 0;
-      }
+      margin-bottom: 8px; /* Increased from 6px for better readability */
     }
 
     .todo-text {
       font-size: 18px;
-      line-height: 1.4;
+      line-height: 1.5; /* Increased from 1.4 for better readability */
     }
 
     .priority-badge {
@@ -230,21 +197,11 @@
       display: flex;
       -webkit-align-items: center; /* Fallback for older iOS */
       align-items: center;
-      /* Fallback for older iOS/iPadOS */
     }
     
+    /* Stable spacing between assignee images */
     .assignee-images > *:not(:last-child) {
       margin-right: 4px;
-    }
-    
-    /* Modern browsers: use gap */
-    @supports (gap: 4px) {
-      .assignee-images {
-        gap: 4px;
-      }
-      .assignee-images > *:not(:last-child) {
-        margin-right: 0;
-      }
     }
 
     .assignee-img {
@@ -254,19 +211,9 @@
       border-radius: 4px;
     }
 
-    /* Fallback for inline style gap in item-meta-row */
+    /* Stable spacing for item-meta-row */
     .item-meta-row > *:not(:last-child) {
       margin-right: 8px;
-    }
-    
-    /* Modern browsers: use gap */
-    @supports (gap: 8px) {
-      .item-meta-row {
-        gap: 8px;
-      }
-      .item-meta-row > *:not(:last-child) {
-        margin-right: 0;
-      }
     }
 
     /* 右側：行事曆 */
@@ -323,21 +270,11 @@
       display: flex;
       -webkit-flex-direction: column; /* Fallback for older iOS */
       flex-direction: column;
-      /* Fallback for older iOS/iPadOS */
     }
     
+    /* Stable spacing between events */
     .event-list > *:not(:last-child) {
       margin-bottom: 10px;
-    }
-    
-    /* Modern browsers: use gap */
-    @supports (gap: 10px) {
-      .event-list {
-        gap: 10px;
-      }
-      .event-list > *:not(:last-child) {
-        margin-bottom: 0;
-      }
     }
 
     .event {
@@ -470,6 +407,13 @@
     const CACHE_KEY_CALENDAR = 'xr_calendar_cache';
     const CACHE_TIMESTAMP_KEY = 'xr_cache_timestamp';
     const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
+    // Detect iOS PWA standalone mode
+    const isStandalone =
+      window.navigator.standalone === true ||
+      window.matchMedia('(display-mode: standalone)').matches;
+    
+    document.documentElement.classList.toggle('is-standalone', isStandalone);
 
     // DOM elements
     const todoList = document.getElementById('todoList');
