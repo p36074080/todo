@@ -126,14 +126,16 @@
     .todo-item {
       display: -webkit-flex; /* Fallback for older iOS */
       display: flex;
-      -webkit-align-items: center; /* Fallback for older iOS */
-      align-items: center;
+      -webkit-align-items: flex-start; /* Changed from center to flex-start for better alignment */
+      align-items: flex-start;
       padding: 20px 24px; /* Increased padding for better readability on old screens */
       border-radius: 14px;
       background: #222;
       -webkit-transition: -webkit-transform 0.2s ease; /* Fallback for older iOS */
       transition: transform 0.2s ease;
       margin: 0; /* Reset margin */
+      min-height: 60px; /* Ensure minimum height for consistency on iOS 12 */
+      box-sizing: border-box; /* Ensure padding is included in height calculation */
     }
     
     /* Stable spacing between todo items using sibling selector */
@@ -155,7 +157,9 @@
       width: 12px;
       height: 12px;
       border-radius: 50%;
+      -webkit-flex-shrink: 0; /* Fallback for older iOS */
       flex-shrink: 0;
+      margin-top: 2px; /* Align with first line of text when align-items is flex-start */
     }
 
     /* 顏色語意 */
@@ -170,6 +174,7 @@
       display: flex;
       -webkit-flex-direction: column; /* Fallback for older iOS */
       flex-direction: column;
+      min-width: 0; /* Prevent flex item from overflowing */
     }
     
     /* Stable spacing between todo-content children */
@@ -180,6 +185,9 @@
     .todo-text {
       font-size: 18px;
       line-height: 1.5; /* Increased from 1.4 for better readability */
+      word-wrap: break-word; /* Ensure long text wraps properly */
+      overflow-wrap: break-word; /* Additional wrapping support */
+      min-height: 1.5em; /* Ensure at least one line height */
     }
 
     .priority-badge {
@@ -189,6 +197,9 @@
       font-weight: 500;
       -webkit-align-self: flex-start; /* Fallback for older iOS */
       align-self: flex-start;
+      line-height: 1.4; /* Ensure consistent line height */
+      min-height: 20px; /* Ensure minimum height */
+      display: inline-block; /* Better rendering on iOS 12 */
     }
 
     .priority-high { background: #ff6b6b; color: #fff; }
@@ -201,6 +212,9 @@
       display: flex;
       -webkit-align-items: center; /* Fallback for older iOS */
       align-items: center;
+      -webkit-flex-shrink: 0; /* Fallback for older iOS */
+      flex-shrink: 0;
+      margin-top: 2px; /* Align with content when align-items is flex-start */
     }
     
     /* Stable spacing between assignee images */
