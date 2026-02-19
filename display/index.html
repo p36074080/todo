@@ -74,19 +74,80 @@
     .tabs {
       display: -webkit-flex; /* Fallback for older iOS */
       display: flex;
+      -webkit-align-items: center; /* Fallback for older iOS */
+      align-items: center;
+      -webkit-justify-content: space-between; /* Fallback for older iOS */
+      justify-content: space-between;
       margin-bottom: 20px;
       margin-left: -6px;
       margin-right: -6px;
     }
     
-    /* Stable spacing between tabs using sibling selector */
-    .tabs .tab {
+    .tabs-left {
+      display: -webkit-flex; /* Fallback for older iOS */
+      display: flex;
       margin-left: 6px;
-      margin-right: 6px;
     }
     
-    .tabs .tab + .tab {
+    /* Stable spacing between tabs using sibling selector */
+    .tabs-left .tab {
+      margin-left: 0;
+      margin-right: 0;
+    }
+    
+    .tabs-left .tab + .tab {
       margin-left: 6px;
+    }
+
+    /* Scroll buttons container */
+    .scroll-buttons {
+      display: -webkit-flex; /* Fallback for older iOS */
+      display: flex;
+      -webkit-align-items: center; /* Fallback for older iOS */
+      align-items: center;
+      margin-right: 6px;
+    }
+
+    /* Stable spacing between scroll buttons - avoid using gap for iOS 12 */
+    .scroll-buttons > *:not(:last-child) {
+      margin-right: 8px;
+    }
+
+    .scroll-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      background: #2a2a2a;
+      border: none;
+      color: #f5f5f5;
+      font-size: 18px;
+      cursor: pointer;
+      display: -webkit-flex; /* Fallback for older iOS */
+      display: flex;
+      -webkit-align-items: center; /* Fallback for older iOS */
+      align-items: center;
+      -webkit-justify-content: center; /* Fallback for older iOS */
+      justify-content: center;
+      -webkit-transition: all 0.2s ease; /* Fallback for older iOS */
+      transition: all 0.2s ease;
+      opacity: 0.7;
+      min-height: 44px; /* iOS minimum touch target */
+    }
+
+    .scroll-btn:hover {
+      background: #3a3a3a;
+      opacity: 1;
+    }
+
+    .scroll-btn:active {
+      background: #4a4a4a;
+      -webkit-transform: scale(0.95); /* Fallback for older iOS */
+      transform: scale(0.95);
+    }
+
+    .scroll-btn:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
     }
 
     .tab {
@@ -135,8 +196,8 @@
       transition: transform 0.2s ease;
       margin: 0; /* Reset margin */
       box-sizing: border-box; /* Ensure padding is included in height calculation */
-      /* Ensure enough height for content - match shopping list height */
-      min-height: 80px; /* Increased minimum height to match shopping list cards */
+      /* Ensure enough height for content */
+      min-height: 115px; /* Fixed height as requested */
     }
     
     /* Stable spacing between todo items using sibling selector */
@@ -434,8 +495,14 @@
     <div class="todo-panel">
       <div class="panel-title">待辦事項</div>
       <div class="tabs">
-        <div class="tab active" data-tab="todo">待辦事項</div>
-        <div class="tab" data-tab="shopping">採買清單</div>
+        <div class="tabs-left">
+          <div class="tab active" data-tab="todo">待辦事項</div>
+          <div class="tab" data-tab="shopping">採買清單</div>
+        </div>
+        <div class="scroll-buttons">
+          <button class="scroll-btn" id="scrollUpBtn" aria-label="向上滾動">↑</button>
+          <button class="scroll-btn" id="scrollDownBtn" aria-label="向下滾動">↓</button>
+        </div>
       </div>
 
       <div class="todo-list" id="todoList">
@@ -485,6 +552,8 @@
     const calendarList = document.getElementById('calendarList');
     const tabs = document.querySelectorAll('.tab');
     const loadingOverlay = document.getElementById('loadingOverlay');
+    const scrollUpBtn = document.getElementById('scrollUpBtn');
+    const scrollDownBtn = document.getElementById('scrollDownBtn');
 
     // Initialize
     function init() {
@@ -503,6 +572,49 @@
           fetchData();
         });
       });
+
+      // Scroll functions
+      function scrollTodoList(direction) {
+        if (!todoList) return;
+        
+        const scrollAmount = 200; // Scroll distance in pixels
+        const currentScrollTop = todoList.scrollTop;
+        const maxScrollTop = todoList.scrollHeight - todoList.clientHeight;
+        
+        if (direction === 'up') {
+          todoList.scrollTop = Math.max(0, currentScrollTop - scrollAmount);
+        } else if (direction === 'down') {
+          todoList.scrollTop = Math.min(maxScrollTop, currentScrollTop + scrollAmount);
+        }
+        
+        // Update button states after scroll animation
+        setTimeout(updateScrollButtons, 100);
+      }
+
+      function updateScrollButtons() {
+        if (!scrollUpBtn || !scrollDownBtn || !todoList) return;
+        
+        const scrollTop = todoList.scrollTop;
+        const scrollHeight = todoList.scrollHeight;
+        const clientHeight = todoList.clientHeight;
+        const maxScrollTop = scrollHeight - clientHeight;
+        
+        // Enable/disable buttons based on scroll position
+        scrollUpBtn.disabled = scrollTop <= 0;
+        scrollDownBtn.disabled = scrollTop >= maxScrollTop - 1; // -1 for rounding issues
+      }
+
+      // Set up scroll buttons
+      if (scrollUpBtn && scrollDownBtn) {
+        scrollUpBtn.addEventListener('click', () => scrollTodoList('up'));
+        scrollDownBtn.addEventListener('click', () => scrollTodoList('down'));
+        
+        // Update button states when scrolling
+        todoList.addEventListener('scroll', updateScrollButtons);
+        
+        // Update button states after initial render
+        setTimeout(updateScrollButtons, 300);
+      }
 
       // Initial load
       fetchData();
@@ -651,6 +763,19 @@
           </div>
         `;
       }).join('');
+      
+      // Update scroll buttons after rendering
+      setTimeout(() => {
+        if (scrollUpBtn && scrollDownBtn && todoList) {
+          const scrollTop = todoList.scrollTop;
+          const scrollHeight = todoList.scrollHeight;
+          const clientHeight = todoList.clientHeight;
+          const maxScrollTop = scrollHeight - clientHeight;
+          
+          scrollUpBtn.disabled = scrollTop <= 0;
+          scrollDownBtn.disabled = scrollTop >= maxScrollTop - 1;
+        }
+      }, 100);
     }
 
     // Render calendar
