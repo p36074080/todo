@@ -128,15 +128,15 @@
       display: flex;
       -webkit-align-items: flex-start; /* Changed from center to flex-start for better alignment */
       align-items: flex-start;
-      padding: 16px 20px; /* Consistent padding for all cards */
+      padding: 18px 20px; /* Match shopping list padding exactly */
       border-radius: 14px;
       background: #222;
       -webkit-transition: -webkit-transform 0.2s ease; /* Fallback for older iOS */
       transition: transform 0.2s ease;
       margin: 0; /* Reset margin */
       box-sizing: border-box; /* Ensure padding is included in height calculation */
-      /* Ensure enough height for content - especially for items with badges and images */
-      min-height: 70px; /* Minimum height to accommodate text + badge + images */
+      /* Ensure enough height for content - match shopping list height */
+      min-height: 80px; /* Increased minimum height to match shopping list cards */
     }
     
     /* Stable spacing between todo items using sibling selector */
@@ -186,31 +186,32 @@
     }
 
     .todo-content > .item-meta-row {
-      margin-top: 10px; /* Increased spacing from text */
+      margin-top: 12px; /* Increased spacing from text to match shopping list */
       margin-bottom: 0;
       flex-shrink: 0; /* Prevent meta row from shrinking */
     }
 
     .todo-text {
       font-size: 18px;
-      line-height: 1.5; /* Increased from 1.4 for better readability */
+      line-height: 1.6; /* Slightly increased line height for better spacing */
       word-wrap: break-word; /* Ensure long text wraps properly */
       overflow-wrap: break-word; /* Additional wrapping support */
       margin: 0; /* Remove default margins */
       padding: 0; /* Remove default padding */
-      min-height: 1.5em; /* Ensure at least one line of text height */
+      min-height: 1.6em; /* Ensure at least one line of text height */
     }
 
     .priority-badge {
       font-size: 12px;
-      padding: 6px 12px; /* Increased padding for better touch target and visibility */
+      padding: 8px 14px; /* Increased padding to match shopping list badge style */
       border-radius: 999px;
       font-weight: 500;
-      line-height: 1.3; /* Slightly increased line height */
+      line-height: 1.4; /* Increased line height for better visibility */
       display: inline-block; /* Better rendering on iOS 12 */
       vertical-align: middle; /* Align with images */
       margin: 0; /* Remove any default margins */
       box-sizing: border-box; /* Ensure padding is included */
+      min-height: 28px; /* Ensure minimum height for badge */
     }
 
     .priority-high { background: #ff6b6b; color: #fff; }
@@ -251,9 +252,10 @@
       align-items: center;
       -webkit-justify-content: space-between; /* Fallback for older iOS */
       justify-content: space-between;
-      margin-top: 10px; /* Increased top margin for spacing from text */
-      min-height: 32px; /* Ensure minimum height to accommodate badge and images */
-      padding-top: 2px; /* Extra padding to prevent content from being cut off */
+      margin-top: 12px; /* Increased top margin for better spacing from text */
+      min-height: 36px; /* Increased minimum height to match shopping list */
+      padding-top: 4px; /* Extra padding to prevent content from being cut off */
+      padding-bottom: 2px; /* Add bottom padding for better spacing */
     }
 
     /* Stable spacing for item-meta-row children */
