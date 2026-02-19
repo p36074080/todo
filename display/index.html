@@ -128,14 +128,15 @@
       display: flex;
       -webkit-align-items: flex-start; /* Changed from center to flex-start for better alignment */
       align-items: flex-start;
-      padding: 18px 20px; /* Match shopping list padding for consistency */
+      padding: 16px 20px; /* Consistent padding for all cards */
       border-radius: 14px;
       background: #222;
       -webkit-transition: -webkit-transform 0.2s ease; /* Fallback for older iOS */
       transition: transform 0.2s ease;
       margin: 0; /* Reset margin */
-      min-height: auto; /* Let content determine height naturally */
       box-sizing: border-box; /* Ensure padding is included in height calculation */
+      /* Ensure enough height for content - especially for items with badges and images */
+      min-height: 70px; /* Minimum height to accommodate text + badge + images */
     }
     
     /* Stable spacing between todo items using sibling selector */
@@ -175,16 +176,19 @@
       -webkit-flex-direction: column; /* Fallback for older iOS */
       flex-direction: column;
       min-width: 0; /* Prevent flex item from overflowing */
+      justify-content: flex-start; /* Align content to top */
     }
     
     /* Stable spacing between todo-content children */
     .todo-content > .todo-text {
       margin-bottom: 0; /* No margin for text, let item-meta-row handle spacing */
+      flex-shrink: 0; /* Prevent text from shrinking */
     }
 
     .todo-content > .item-meta-row {
-      margin-top: 8px; /* Spacing from text */
+      margin-top: 10px; /* Increased spacing from text */
       margin-bottom: 0;
+      flex-shrink: 0; /* Prevent meta row from shrinking */
     }
 
     .todo-text {
@@ -194,6 +198,7 @@
       overflow-wrap: break-word; /* Additional wrapping support */
       margin: 0; /* Remove default margins */
       padding: 0; /* Remove default padding */
+      min-height: 1.5em; /* Ensure at least one line of text height */
     }
 
     .priority-badge {
@@ -201,9 +206,11 @@
       padding: 6px 12px; /* Increased padding for better touch target and visibility */
       border-radius: 999px;
       font-weight: 500;
-      line-height: 1.2; /* Tighter line height for badge */
+      line-height: 1.3; /* Slightly increased line height */
       display: inline-block; /* Better rendering on iOS 12 */
       vertical-align: middle; /* Align with images */
+      margin: 0; /* Remove any default margins */
+      box-sizing: border-box; /* Ensure padding is included */
     }
 
     .priority-high { background: #ff6b6b; color: #fff; }
@@ -218,7 +225,8 @@
       align-items: center;
       -webkit-flex-shrink: 0; /* Fallback for older iOS */
       flex-shrink: 0;
-      margin-top: 2px; /* Align with content when align-items is flex-start */
+      margin: 0; /* Remove margin to prevent overflow */
+      padding: 0; /* Remove padding */
     }
     
     /* Stable spacing between assignee images */
@@ -231,6 +239,8 @@
       height: 30px;
       object-fit: cover;
       border-radius: 4px;
+      display: block; /* Ensure proper rendering */
+      flex-shrink: 0; /* Prevent image from shrinking */
     }
 
     /* Item meta row - for priority badge and assignee images */
@@ -241,8 +251,9 @@
       align-items: center;
       -webkit-justify-content: space-between; /* Fallback for older iOS */
       justify-content: space-between;
-      margin-top: 8px; /* Add top margin for spacing from text */
-      min-height: 30px; /* Ensure minimum height for consistency */
+      margin-top: 10px; /* Increased top margin for spacing from text */
+      min-height: 32px; /* Ensure minimum height to accommodate badge and images */
+      padding-top: 2px; /* Extra padding to prevent content from being cut off */
     }
 
     /* Stable spacing for item-meta-row children */
