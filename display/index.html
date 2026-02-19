@@ -128,13 +128,13 @@
       display: flex;
       -webkit-align-items: flex-start; /* Changed from center to flex-start for better alignment */
       align-items: flex-start;
-      padding: 20px 24px; /* Increased padding for better readability on old screens */
+      padding: 18px 20px; /* Match shopping list padding for consistency */
       border-radius: 14px;
       background: #222;
       -webkit-transition: -webkit-transform 0.2s ease; /* Fallback for older iOS */
       transition: transform 0.2s ease;
       margin: 0; /* Reset margin */
-      min-height: 60px; /* Ensure minimum height for consistency on iOS 12 */
+      min-height: auto; /* Let content determine height naturally */
       box-sizing: border-box; /* Ensure padding is included in height calculation */
     }
     
@@ -178,8 +178,13 @@
     }
     
     /* Stable spacing between todo-content children */
-    .todo-content > *:not(:last-child) {
-      margin-bottom: 8px; /* Increased from 6px for better readability */
+    .todo-content > .todo-text {
+      margin-bottom: 0; /* No margin for text, let item-meta-row handle spacing */
+    }
+
+    .todo-content > .item-meta-row {
+      margin-top: 8px; /* Spacing from text */
+      margin-bottom: 0;
     }
 
     .todo-text {
@@ -187,19 +192,18 @@
       line-height: 1.5; /* Increased from 1.4 for better readability */
       word-wrap: break-word; /* Ensure long text wraps properly */
       overflow-wrap: break-word; /* Additional wrapping support */
-      min-height: 1.5em; /* Ensure at least one line height */
+      margin: 0; /* Remove default margins */
+      padding: 0; /* Remove default padding */
     }
 
     .priority-badge {
       font-size: 12px;
-      padding: 4px 10px;
+      padding: 6px 12px; /* Increased padding for better touch target and visibility */
       border-radius: 999px;
       font-weight: 500;
-      -webkit-align-self: flex-start; /* Fallback for older iOS */
-      align-self: flex-start;
-      line-height: 1.4; /* Ensure consistent line height */
-      min-height: 20px; /* Ensure minimum height */
+      line-height: 1.2; /* Tighter line height for badge */
       display: inline-block; /* Better rendering on iOS 12 */
+      vertical-align: middle; /* Align with images */
     }
 
     .priority-high { background: #ff6b6b; color: #fff; }
@@ -229,7 +233,19 @@
       border-radius: 4px;
     }
 
-    /* Stable spacing for item-meta-row */
+    /* Item meta row - for priority badge and assignee images */
+    .item-meta-row {
+      display: -webkit-flex; /* Fallback for older iOS */
+      display: flex;
+      -webkit-align-items: center; /* Fallback for older iOS */
+      align-items: center;
+      -webkit-justify-content: space-between; /* Fallback for older iOS */
+      justify-content: space-between;
+      margin-top: 8px; /* Add top margin for spacing from text */
+      min-height: 30px; /* Ensure minimum height for consistency */
+    }
+
+    /* Stable spacing for item-meta-row children */
     .item-meta-row > *:not(:last-child) {
       margin-right: 8px;
     }
@@ -614,7 +630,7 @@
             <div class="todo-dot ${subtype}"></div>
             <div class="todo-content">
               <div class="todo-text">${escapeHtml(item.text)}</div>
-              <div style="display: flex; align-items: center; justify-content: space-between;" class="item-meta-row">
+              <div class="item-meta-row">
                 <div class="priority-badge priority-${item.priority}">${priorityLabel}</div>
                 ${assigneeHtml}
               </div>
