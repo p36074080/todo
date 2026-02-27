@@ -35,14 +35,26 @@
 
     /* Tabs */
     .tabs {
+      display: -webkit-flex; /* Fallback for older iOS */
       display: flex;
-      gap: 8px;
       padding: 16px;
+      padding-left: 12px; /* Account for negative margin */
+      padding-right: 12px;
       position: sticky;
       top: 0;
       background: #0f0f0f;
       z-index: 10;
       border-bottom: 1px solid #2a2a2a;
+    }
+
+    /* Stable spacing between tabs */
+    .tabs .tab {
+      margin-left: 4px;
+      margin-right: 4px;
+    }
+
+    .tabs .tab + .tab {
+      margin-left: 4px;
     }
 
     /* iOS PWA safe-area support */
@@ -51,20 +63,29 @@
     }
 
     .tab {
+      -webkit-flex: 1; /* Fallback for older iOS */
       flex: 1;
       text-align: center;
       padding: 14px 0; /* Increased to ensure ≥ 44px touch target */
       min-height: 44px; /* iOS minimum touch target */
+      display: -webkit-flex; /* Fallback for older iOS */
       display: flex;
+      -webkit-align-items: center; /* Fallback for older iOS */
       align-items: center;
+      -webkit-justify-content: center; /* Fallback for older iOS */
       justify-content: center;
-      gap: 6px;
       border-radius: 999px;
       background: #2a2a2a;
       opacity: 0.5;
       cursor: pointer;
       font-size: 15px;
+      -webkit-transition: all 0.2s ease; /* Fallback for older iOS */
       transition: all 0.2s ease;
+    }
+
+    /* Stable spacing between tab icon and text */
+    .tab .tab-icon {
+      margin-right: 6px;
     }
 
     .tab-icon {
@@ -87,10 +108,15 @@
 
     .item-wrapper {
       position: relative;
-      margin-bottom: 12px;
+      margin: 0; /* Reset margin */
       overflow: hidden;
       border-radius: 14px;
       touch-action: pan-y;
+    }
+
+    /* Stable spacing between item wrappers using sibling selector */
+    .item-wrapper + .item-wrapper {
+      margin-top: 16px; /* Stable, suitable for iPad dashboard */
     }
 
     .delete-btn {
@@ -111,15 +137,22 @@
 
     .item {
       background: #1e1e1e;
-      padding: 16px;
+      padding: 20px 24px; /* Increased padding for better readability on old screens */
+      display: -webkit-flex; /* Fallback for older iOS */
       display: flex;
+      -webkit-align-items: center; /* Fallback for older iOS */
       align-items: center;
-      gap: 12px;
       transform: translateX(0);
+      -webkit-transition: -webkit-transform 0.2s ease; /* Fallback for older iOS */
       transition: transform 0.2s ease;
       position: relative;
       z-index: 2;
       cursor: pointer;
+    }
+
+    /* Stable spacing between item children */
+    .item > *:not(:last-child) {
+      margin-right: 12px;
     }
 
     .checkbox {
@@ -148,15 +181,25 @@
     }
 
     .item-content {
+      -webkit-flex: 1; /* Fallback for older iOS */
       flex: 1;
+      min-width: 0; /* 允許在 flex 中縮小，避免長文字撐破卡片 */
+      display: -webkit-flex; /* Fallback for older iOS */
       display: flex;
+      -webkit-flex-direction: column; /* Fallback for older iOS */
       flex-direction: column;
-      gap: 6px;
+    }
+
+    /* Stable spacing between item-content children */
+    .item-content > *:not(:last-child) {
+      margin-bottom: 8px; /* Increased from 6px for better readability */
     }
 
     .text {
       font-size: 16px;
-      line-height: 1.4;
+      line-height: 1.5; /* Increased from 1.4 for better readability */
+      overflow-wrap: break-word; /* 長文字自動換行 */
+      word-break: break-word; /* 無空格連續字串也可斷行 */
     }
 
     .done {
@@ -165,11 +208,19 @@
     }
 
     .item-meta {
+      display: -webkit-flex; /* Fallback for older iOS */
       display: flex;
-      gap: 8px;
+      -webkit-align-items: center; /* Fallback for older iOS */
       align-items: center;
+      -webkit-justify-content: space-between; /* Fallback for older iOS */
       justify-content: space-between;
+      -webkit-flex-wrap: wrap; /* Fallback for older iOS */
       flex-wrap: wrap;
+    }
+
+    /* Stable spacing between item-meta children */
+    .item-meta > *:not(:last-child) {
+      margin-right: 8px;
     }
 
     /* Priority badge */
@@ -182,10 +233,16 @@
 
     /* Assignee images */
     .assignee-images {
+      display: -webkit-flex; /* Fallback for older iOS */
       display: flex;
-      gap: 4px;
+      -webkit-align-items: center; /* Fallback for older iOS */
       align-items: center;
       margin-left: auto;
+    }
+
+    /* Stable spacing between assignee images */
+    .assignee-images > *:not(:last-child) {
+      margin-right: 4px;
     }
 
     .assignee-img {
@@ -294,9 +351,17 @@
     }
 
     .sheet-buttons {
+      display: -webkit-flex; /* Fallback for older iOS */
       display: flex;
-      gap: 12px;
       margin-top: 24px;
+      margin-left: -6px;
+      margin-right: -6px;
+    }
+
+    /* Stable spacing between sheet buttons */
+    .sheet-buttons > * {
+      margin-left: 6px;
+      margin-right: 6px;
     }
 
     .sheet-btn {
@@ -352,15 +417,24 @@
       right: 0;
       bottom: 0;
       background: rgba(0, 0, 0, 0.7);
+      display: -webkit-flex; /* Fallback for older iOS */
       display: flex;
+      -webkit-flex-direction: column; /* Fallback for older iOS */
       flex-direction: column;
+      -webkit-align-items: center; /* Fallback for older iOS */
       align-items: center;
+      -webkit-justify-content: center; /* Fallback for older iOS */
       justify-content: center;
-      gap: 20px;
       z-index: 10000;
       opacity: 0;
       pointer-events: none;
+      -webkit-transition: opacity 0.2s ease; /* Fallback for older iOS */
       transition: opacity 0.2s ease;
+    }
+
+    /* Stable spacing between loading overlay children */
+    .loading-overlay > *:not(:last-child) {
+      margin-bottom: 20px;
     }
 
     .loading-overlay.show {
@@ -594,10 +668,7 @@
           render();
         }
         
-        // Remove loading overlay after data is loaded
-        setTimeout(() => {
-          loadingOverlay.classList.remove('show');
-        }, 300);
+        loadingOverlay.classList.remove('show');
       } catch (error) {
         console.error('Failed to fetch items:', error);
         loadingOverlay.classList.remove('show');
@@ -731,16 +802,19 @@
       });
     }
 
-    // Toggle item status
+    // Toggle item status（樂觀更新：先更新 UI，背景同步 API）
     async function toggleStatus(id) {
       const item = items.find(i => i.id === id);
       if (!item) return;
 
       const newStatus = item.status === 'active' ? 'done' : 'active';
-      
-      // Show loading overlay
-      reloadLoadingImages(); // Reload APNG before showing
-      loadingOverlay.classList.add('show');
+      const prevStatus = item.status;
+
+      // 樂觀更新：立即更新 UI
+      item.status = newStatus;
+      item.updatedAt = Date.now();
+      localStorage.setItem(CACHE_KEY, JSON.stringify(items));
+      render();
 
       try {
         const formData = new FormData();
@@ -756,34 +830,34 @@
         });
 
         const data = await response.json();
-        if (data.success) {
-          item.status = newStatus;
+        if (!data.success) {
+          item.status = prevStatus;
           item.updatedAt = Date.now();
           localStorage.setItem(CACHE_KEY, JSON.stringify(items));
           render();
-          
-          // Remove loading overlay after a short delay
-          setTimeout(() => {
-            loadingOverlay.classList.remove('show');
-          }, 300);
-        } else {
-          loadingOverlay.classList.remove('show');
           alert('更新失敗，請稍後再試');
         }
       } catch (error) {
         console.error('Failed to update item:', error);
-        loadingOverlay.classList.remove('show');
+        item.status = prevStatus;
+        item.updatedAt = Date.now();
+        localStorage.setItem(CACHE_KEY, JSON.stringify(items));
+        render();
         alert('更新失敗，請稍後再試');
       }
     }
 
-    // Archive item
+    // Archive item（樂觀更新：先從 UI 移除，背景同步 API）
     async function archiveItem(id) {
       if (!confirm('確定要刪除這個項目嗎？')) return;
 
-      // Show loading overlay
-      reloadLoadingImages(); // Reload APNG before showing
-      loadingOverlay.classList.add('show');
+      const removedItem = items.find(i => i.id === id);
+      if (!removedItem) return;
+
+      // 樂觀更新：立即從清單移除
+      items = items.filter(i => i.id !== id);
+      localStorage.setItem(CACHE_KEY, JSON.stringify(items));
+      render();
 
       try {
         const formData = new FormData();
@@ -798,22 +872,17 @@
         });
 
         const data = await response.json();
-        if (data.success) {
-          items = items.filter(i => i.id !== id);
+        if (!data.success) {
+          items.push(removedItem);
           localStorage.setItem(CACHE_KEY, JSON.stringify(items));
           render();
-          
-          // Remove loading overlay after a short delay
-          setTimeout(() => {
-            loadingOverlay.classList.remove('show');
-          }, 300);
-        } else {
-          loadingOverlay.classList.remove('show');
           alert('刪除失敗，請稍後再試');
         }
       } catch (error) {
         console.error('Failed to archive item:', error);
-        loadingOverlay.classList.remove('show');
+        items.push(removedItem);
+        localStorage.setItem(CACHE_KEY, JSON.stringify(items));
+        render();
         alert('刪除失敗，請稍後再試');
       }
     }
@@ -932,13 +1001,8 @@
             currentTab = targetTabType;
           }
           
-          // Fetch fresh data and render
-          await fetchItems();
-          
-          // Remove loading overlay after a short delay
-          setTimeout(() => {
-            loadingOverlay.classList.remove('show');
-          }, 300);
+          render();
+          loadingOverlay.classList.remove('show');
         } else {
           console.error('Unexpected response format:', data);
           loadingOverlay.classList.remove('show');
