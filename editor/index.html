@@ -668,7 +668,9 @@
           render();
         }
         
-        loadingOverlay.classList.remove('show');
+        setTimeout(() => {
+          loadingOverlay.classList.remove('show');
+        }, 600);
       } catch (error) {
         console.error('Failed to fetch items:', error);
         loadingOverlay.classList.remove('show');
@@ -802,19 +804,15 @@
       });
     }
 
-    // Toggle item status（樂觀更新：先更新 UI，背景同步 API）
+    // Toggle item status
     async function toggleStatus(id) {
       const item = items.find(i => i.id === id);
       if (!item) return;
 
       const newStatus = item.status === 'active' ? 'done' : 'active';
-      const prevStatus = item.status;
-
-      // 樂觀更新：立即更新 UI
-      item.status = newStatus;
-      item.updatedAt = Date.now();
-      localStorage.setItem(CACHE_KEY, JSON.stringify(items));
-      render();
+      
+      reloadLoadingImages();
+      loadingOverlay.classList.add('show');
 
       try {
         const formData = new FormData();
@@ -830,34 +828,32 @@
         });
 
         const data = await response.json();
-        if (!data.success) {
-          item.status = prevStatus;
+        if (data.success) {
+          item.status = newStatus;
           item.updatedAt = Date.now();
           localStorage.setItem(CACHE_KEY, JSON.stringify(items));
           render();
+          
+          setTimeout(() => {
+            loadingOverlay.classList.remove('show');
+          }, 600);
+        } else {
+          loadingOverlay.classList.remove('show');
           alert('更新失敗，請稍後再試');
         }
       } catch (error) {
         console.error('Failed to update item:', error);
-        item.status = prevStatus;
-        item.updatedAt = Date.now();
-        localStorage.setItem(CACHE_KEY, JSON.stringify(items));
-        render();
+        loadingOverlay.classList.remove('show');
         alert('更新失敗，請稍後再試');
       }
     }
 
-    // Archive item（樂觀更新：先從 UI 移除，背景同步 API）
+    // Archive item
     async function archiveItem(id) {
       if (!confirm('確定要刪除這個項目嗎？')) return;
 
-      const removedItem = items.find(i => i.id === id);
-      if (!removedItem) return;
-
-      // 樂觀更新：立即從清單移除
-      items = items.filter(i => i.id !== id);
-      localStorage.setItem(CACHE_KEY, JSON.stringify(items));
-      render();
+      reloadLoadingImages();
+      loadingOverlay.classList.add('show');
 
       try {
         const formData = new FormData();
@@ -872,17 +868,21 @@
         });
 
         const data = await response.json();
-        if (!data.success) {
-          items.push(removedItem);
+        if (data.success) {
+          items = items.filter(i => i.id !== id);
           localStorage.setItem(CACHE_KEY, JSON.stringify(items));
           render();
+          
+          setTimeout(() => {
+            loadingOverlay.classList.remove('show');
+          }, 600);
+        } else {
+          loadingOverlay.classList.remove('show');
           alert('刪除失敗，請稍後再試');
         }
       } catch (error) {
         console.error('Failed to archive item:', error);
-        items.push(removedItem);
-        localStorage.setItem(CACHE_KEY, JSON.stringify(items));
-        render();
+        loadingOverlay.classList.remove('show');
         alert('刪除失敗，請稍後再試');
       }
     }
@@ -928,7 +928,6 @@
         return;
       }
 
-      // Validate assignee (required)
       if (!newAssignee.value) {
         alert('請選擇負責人');
         return;
@@ -939,80 +938,75 @@
         text: text,
         type: newType.value,
         priority: newPriority.value,
-        assignee: newAssignee.value // Required field
+        assignee: newAssignee.value
       };
 
-      // Show loading overlay
-      reloadLoadingImages(); // Reload APNG before showing
+      reloadLoadingImages();
       loadingOverlay.classList.add('show');
-      closeSheet(); // Close sheet immediately when loading starts
+      closeSheet();
 
-      try {
-        console.log('Sending request:', itemData);
-        console.log('API URL:', API_BASE_URL);
-        
-        // Use FormData to avoid CORS preflight issues
-        const formData = new FormData();
-        formData.append('payload', JSON.stringify(itemData));
-        
-        const response = await fetch(API_BASE_URL, {
-          method: 'POST',
-          body: formData
-        });
+      // 重試機制：網路不穩時自動重試最多 3 次，減少 Load failed 發生率
+      const maxRetries = 2;
 
-        console.log('Response status:', response.status, response.statusText);
-        
-        // Get response text first to see what we're getting
-        const responseText = await response.text();
-        console.log('Response text:', responseText);
-
-        let data;
+      for (let attempt = 0; attempt <= maxRetries; attempt++) {
         try {
-          data = JSON.parse(responseText);
-        } catch (parseError) {
-          console.error('Failed to parse JSON:', parseError);
-          console.error('Response was:', responseText);
-          loadingOverlay.classList.remove('show');
-          alert('伺服器回應格式錯誤，請檢查 Console');
-          return;
-        }
-
-        console.log('Parsed data:', data);
-
-        if (data.error) {
-          console.error('API error:', data.error);
-          loadingOverlay.classList.remove('show');
-          alert('新增失敗：' + data.error);
-          return;
-        }
-
-        if (data.success && data.item) {
-          items.push(data.item);
-          localStorage.setItem(CACHE_KEY, JSON.stringify(items));
-          
-          // Always switch to the correct tab based on item type
-          const targetTabType = data.item.type; // 'todo' or 'shopping'
-          const targetTab = document.querySelector(`[data-tab="${targetTabType}"]`);
-          
-          if (targetTab && currentTab !== targetTabType) {
-            // Switch to the correct tab
-            tabs.forEach(t => t.classList.remove('active'));
-            targetTab.classList.add('active');
-            currentTab = targetTabType;
+          if (attempt > 0) {
+            await new Promise(r => setTimeout(r, 1500));
           }
           
-          render();
-          loadingOverlay.classList.remove('show');
-        } else {
-          console.error('Unexpected response format:', data);
+          const formData = new FormData();
+          formData.append('payload', JSON.stringify(itemData));
+          
+          const response = await fetch(API_BASE_URL, {
+            method: 'POST',
+            body: formData
+          });
+
+          const responseText = await response.text();
+          let data;
+          try {
+            data = JSON.parse(responseText);
+          } catch (parseError) {
+            loadingOverlay.classList.remove('show');
+            alert('伺服器回應格式錯誤，請檢查 Console');
+            return;
+          }
+
+          if (data.error) {
+            loadingOverlay.classList.remove('show');
+            alert('新增失敗：' + data.error);
+            return;
+          }
+
+          if (data.success && data.item) {
+            items.push(data.item);
+            localStorage.setItem(CACHE_KEY, JSON.stringify(items));
+            
+            const targetTabType = data.item.type;
+            const targetTab = document.querySelector(`[data-tab="${targetTabType}"]`);
+            if (targetTab && currentTab !== targetTabType) {
+              tabs.forEach(t => t.classList.remove('active'));
+              targetTab.classList.add('active');
+              currentTab = targetTabType;
+            }
+            
+            render();
+            setTimeout(() => {
+              loadingOverlay.classList.remove('show');
+            }, 600);
+            return;
+          }
+
           loadingOverlay.classList.remove('show');
           alert('新增失敗：回應格式不正確，請檢查 Console');
+          return;
+        } catch (error) {
+          console.error('Add attempt ' + (attempt + 1) + ' failed:', error.message);
+          if (attempt === maxRetries) {
+            loadingOverlay.classList.remove('show');
+            alert('新增失敗：' + (error.message || '請稍後再試') + '\n請檢查網路連線後再試');
+          }
         }
-      } catch (error) {
-        console.error('Failed to create item:', error);
-        console.error('Error details:', error.message, error.stack);
-        loadingOverlay.classList.remove('show');
-        alert('新增失敗：' + (error.message || '請稍後再試') + '\n請檢查 Console 查看詳細錯誤');
       }
     }
 
